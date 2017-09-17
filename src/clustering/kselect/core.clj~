@@ -1,0 +1,25 @@
+(ns ae.kselect.core
+  (:gen-class)
+  (:require [ae.kmeans.lib :as lib]
+            [ae.kselect.kmeans :as k]
+            [ae.lib :as core-lib]
+            [taoensso.timbre :as timbre]))
+
+(defn -main [mode input-dir partitions params]
+  (core-lib/setup-logging)
+  (let [ctx (lib/init-spark mode)]
+    (try
+      (let [[_ iterations _] (lib/parse-params params)
+            rdd (lib/process-file
+                 ctx
+                 (lib/compute-size input-dir)
+                 (lib/input-file input-dir)
+                 (read-string partitions))
+            [k _ _ _] (lib/timeit "done with snail speed (omg) K selection"
+                        (k/process-kmeans rdd nil iterations))]
+        (timbre/info "picked k:" k)
+        (core-lib/put-key (lib/k-file input-dir) (str k)))
+      (finally
+        (if (= mode "single")
+          (.stop ctx))))
+    (core-lib/shutdown)))
