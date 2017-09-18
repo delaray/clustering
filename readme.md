@@ -1,5 +1,7 @@
 # understanding
 
+Hello world.
+
 this system spins up ec2 instances to run batch jobs, terminates them when done. it reads from s3 and writes to s3.
 
 everything you need to operate this system is in `bin/`.
